@@ -10,7 +10,7 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
-	"dependencies": {
+	"devDependencies": {
 		"style-dictionary": "^3.9.0"
 	}
 }

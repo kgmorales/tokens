@@ -1,34 +1,34 @@
-name: Generate scss from tokens and copy
-on: [push]
+name: Build Design Tokens
+
+on:
+  push:
+    paths:
+      - 'input/tokens.json'
+      - 'build.js'
 
 jobs:
-  build_tokens:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2.4.0
-      - run: npm install
-      - run: npx token-transformer input/tokens.json input/base.json base
-      - run: npx token-transformer input/design-tokens.json input/brand-a.json base,brand-a base --expandTypography=true
-      - run: npx token-transformer input/design-tokens.json input/brand-b.json base,brand-b base --expandTypography=true
-      - run: node build.js
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
         with:
-          commit_message: build tokens
-  copy_tokens:
-    runs-on: ubuntu-latest
-    needs: [build_tokens]
-    steps:
-      - uses: andstor/copycat-action@v3.2.4
-        with:
-          personal_token: ${{ secrets.GH_PAT }}
-          src_branch: main
-          src_path: output/.
-          dst_owner: nyan-matt
-          dst_repo_name: stencil-storybook-token-demo
-          dst_branch: main
-          dst_path: src/css/.
-          username: nyan-matt
-          email: matt.rea@gmail.com
-          commit_message: copy css tokens
+          node-version: '16' # Use the latest LTS version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build tokens
+        run: node build.js
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<your-email>"
+          git add -A
+          git commit -m "Automatically built design tokens" || echo "No changes to commit"
+          git push
