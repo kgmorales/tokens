@@ -14,14 +14,14 @@ function preprocessTokens(rawTokens) {
 	const processedTokens = JSON.parse(JSON.stringify(rawTokens)); // Deep clone the tokens
 
 	// Adjust references for sure.bradfordH1
-	processedTokens.sure.bradfordH1.value.fontFamily = `{sure.bradford.value}`;
-	processedTokens.sure.bradfordH1.value.fontWeight = `{sure.medium.value}`;
-	processedTokens.sure.bradfordH1.value.fontSize = `{sure.heading1.value}`;
+	processedTokens.sure.bradfordH1.value.fontFamily = `{sure.${processedTokens.sure.bradfordH1.value.fontFamily}.value}`;
+	processedTokens.sure.bradfordH1.value.fontWeight = `{sure.${processedTokens.sure.bradfordH1.value.fontWeight}.value}`;
+	processedTokens.sure.bradfordH1.value.fontSize = `{sure.${processedTokens.sure.bradfordH1.value.fontSize}.value}`;
 
 	// Adjust references for sure.untitledSansH1
-	processedTokens.sure.untitledSansH1.value.fontFamily = `{sure.untitledSans.value}`;
-	processedTokens.sure.untitledSansH1.value.fontWeight = `{sure.medium.value}`;
-	processedTokens.sure.untitledSansH1.value.fontSize = `{sure.heading1.value}`;
+	processedTokens.sure.untitledSansH1.value.fontFamily = `{sure.${processedTokens.sure.untitledSansH1.value.fontFamily}.value}`;
+	processedTokens.sure.untitledSansH1.value.fontWeight = `{sure.${processedTokens.sure.untitledSansH1.value.fontWeight}.value}`;
+	processedTokens.sure.untitledSansH1.value.fontSize = `{sure.${processedTokens.sure.untitledSansH1.value.fontSize}.value}`;
 
 	return processedTokens;
 }
