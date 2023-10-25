@@ -1,53 +1,94 @@
 const StyleDictionaryPackage = require('style-dictionary');
-const tokens = require('./input/tokens.json');
 
-// Register custom format for CSS variables
+// HAVE THE STYLE DICTIONARY CONFIG DYNAMICALLY GENERATED
+
 StyleDictionaryPackage.registerFormat({
 	name: 'css/variables',
-	formatter: function (dictionary) {
-		return dictionary.allProperties.map((prop) => `  --${prop.name}: ${prop.value};`).join('\n');
+	formatter: function (dictionary, config) {
+		return `${this.selector} {
+        ${dictionary.allProperties.map((prop) => `  --${prop.name}: ${prop.value};`).join('\n')}
+      }`;
 	},
 });
 
-// Preprocess tokens to adjust references
-function preprocessTokens(rawTokens) {
-	const processedTokens = JSON.parse(JSON.stringify(rawTokens)); // Deep clone the tokens
+//
 
-	// Adjust references for sure.bradfordH1
-	processedTokens.sure.bradfordH1.value.fontFamily = `{sure.${processedTokens.sure.bradfordH1.value.fontFamily}.value}`;
-	processedTokens.sure.bradfordH1.value.fontWeight = `{sure.${processedTokens.sure.bradfordH1.value.fontWeight}.value}`;
-	processedTokens.sure.bradfordH1.value.fontSize = `{sure.${processedTokens.sure.bradfordH1.value.fontSize}.value}`;
-
-	// Adjust references for sure.untitledSansH1
-	processedTokens.sure.untitledSansH1.value.fontFamily = `{sure.${processedTokens.sure.untitledSansH1.value.fontFamily}.value}`;
-	processedTokens.sure.untitledSansH1.value.fontWeight = `{sure.${processedTokens.sure.untitledSansH1.value.fontWeight}.value}`;
-	processedTokens.sure.untitledSansH1.value.fontSize = `{sure.${processedTokens.sure.untitledSansH1.value.fontSize}.value}`;
-
-	return processedTokens;
+function kebabIt(str) {
+	return str
+		.match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g)
+		.join('-')
+		.toLowerCase();
 }
 
-// Define the transformation logic
-function transformTokens(rawTokens) {
-	const processedTokens = preprocessTokens(rawTokens);
+function getBasePxFontSize(options) {
+	return (options && options.basePxFontSize) || 16;
+}
 
-	const styleDictionary = StyleDictionaryPackage.extend({
-		source: ['./input/tokens.json'],
+function fontPxToRem(token, options) {
+	const baseFont = getBasePxFontSize(options);
+	const floatVal = parseFloat(token.value);
+	if (isNaN(floatVal)) {
+		console.log('NaN error', token.name, token.value, 'rem');
+	}
+	if (floatVal === 0) {
+		return '0';
+	}
+	return `${floatVal / baseFont}rem`;
+}
+
+StyleDictionaryPackage.registerTransform({
+	name: 'size/pxToRem',
+	type: 'value',
+	matcher: (token) => ['fontSizes'].includes(token.type),
+	transformer: (token, options) => fontPxToRem(token, options),
+});
+//
+StyleDictionaryPackage.registerTransform({
+	name: 'sizes/px',
+	type: 'value',
+	matcher: function (prop) {
+		// You can be more specific here if you only want 'em' units for font sizes
+		return ['fontSize', 'spacing', 'borderRadius', 'borderWidth', 'sizing'].includes(prop.attributes.category);
+	},
+	transformer: function (prop) {
+		// You can also modify the value here if you want to convert pixels to ems
+		return parseFloat(prop.original.value) + 'px';
+	},
+});
+
+function getStyleDictionaryConfig(theme) {
+	return {
+		source: [`input/${theme}.json`],
 		platforms: {
-			css: {
-				transformGroup: 'css',
-				buildPath: 'output/',
+			web: {
+				transforms: ['attribute/cti', 'name/cti/kebab', 'sizes/px', 'size/pxToRem'],
+				buildPath: `output/`,
 				files: [
 					{
-						destination: 'tokens.css',
+						destination: `${theme}.css`,
 						format: 'css/variables',
+						selector: `.${theme}-theme`,
 					},
 				],
 			},
 		},
-	});
-
-	styleDictionary.buildAllPlatforms();
+	};
 }
 
-// Process the tokens
-transformTokens(tokens);
+console.log('Build started...');
+
+// PROCESS THE DESIGN TOKENS FOR THE DIFFEREN BRANDS AND PLATFORMS
+
+['base', 'brand-a', 'brand-b'].map(function (theme) {
+	console.log('\n==============================================');
+	console.log(`\nProcessing: [${theme}]`);
+
+	const StyleDictionary = StyleDictionaryPackage.extend(getStyleDictionaryConfig(theme));
+
+	StyleDictionary.buildPlatform('web');
+
+	console.log('\nEnd processing');
+});
+
+console.log('\n==============================================');
+console.log('\nBuild completed!');
