@@ -1,0 +1,16 @@
+{
+	"name": "tokens",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"build": "node ./build.js",
+		"clean": "rm -rf output"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"style-dictionary": "^3.9.0"
+	}
+}
